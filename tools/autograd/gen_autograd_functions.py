@@ -53,22 +53,28 @@ GRAD_INPUT_MASK = CodeTemplate("""\
 
 DERIVATIVE_SINGLE = CodeTemplate("""\
 if (should_compute_output({ ${name}_ix })) {
+  profiler::RecordFunction::set_backward_apply_state(true, sequence_nr());
   auto grad_result = ${derivative};
   copy_range(grad_inputs, ${name}_ix, grad_result);
+  profiler::RecordFunction::set_backward_apply_state(false);
 }
 """)
 
 DERIVATIVE_MULTI_COPY_RANGE = CodeTemplate("""\
   if (should_compute_output({ ${name}_ix })) {
+    profiler::RecordFunction::set_backward_apply_state(true, sequence_nr());
     copy_range(grad_inputs, ${name}_ix, std::get<${i}>(grad_result));
+    profiler::RecordFunction::set_backward_apply_state(false);
   }
 """)
 
 DERIVATIVE_MULTI = CodeTemplate("""\
 if (should_compute_output({ ${idx_ranges} })) {
+  profiler::RecordFunction::set_backward_apply_state(true, sequence_nr());
   ${grad_input_mask}
   auto grad_result = ${derivative};
   ${copy_ranges}
+  profiler::RecordFunction::set_backward_apply_state(false);
 }
 """)
 

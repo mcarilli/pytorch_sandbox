@@ -176,10 +176,16 @@ struct TORCH_API RecordFunction {
 
   explicit RecordFunction(const char* name);
 
+  explicit RecordFunction(const char* name, int64_t current_sequence_nr);
+
   ~RecordFunction();
 
   // Needed only because we don't have Function defined yet.
   void pushFunctionRange(Function *fn);
+
+  static thread_local bool backward_apply_state;
+  static thread_local int64_t backward_apply_sequence_nr;
+  static void set_backward_apply_state(bool state, int64_t backward_apply_nr = -1);
 };
 
 using thread_event_lists = std::vector<std::vector<Event>>;

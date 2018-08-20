@@ -1,5 +1,6 @@
 #include "torch/csrc/autograd/profiler.h"
 #include "torch/csrc/autograd/function.h"
+#include <sstream>
 
 namespace torch { namespace autograd { namespace profiler {
 
@@ -95,10 +96,30 @@ RecordFunction::RecordFunction(const char* name) {
   pushRange(name);
 }
 
+RecordFunction::RecordFunction(const char* name, int64_t current_sequence_nr) 
+{
+  if (state == ProfilerState::Disabled)
+    return;
+  std::stringstream s;
+  s << name << ", current seq nr " << current_sequence_nr;
+  if(backward_apply_state)
+    s << ", backward apply seq nr " << backward_apply_sequence_nr;
+  pushRange(std::move(s.str()));
+}
+
 RecordFunction::~RecordFunction() {
   if (state == ProfilerState::Disabled)
     return;
   popRange();
+}
+
+thread_local bool RecordFunction::backward_apply_state;
+thread_local int64_t RecordFunction::backward_apply_sequence_nr;
+
+void RecordFunction::set_backward_apply_state(bool state, int64_t backward_apply_nr)
+{
+  backward_apply_state = state;
+  backward_apply_sequence_nr = backward_apply_nr;
 }
 
 void RecordFunction::pushFunctionRange(Function* fn) {

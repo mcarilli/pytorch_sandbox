@@ -313,8 +313,8 @@ struct TORCH_API Function : std::enable_shared_from_this<Function> {
     return nullptr;
   }
 
- protected:
   static uint64_t& get_next_sequence_nr();
+ protected:
 
   /// Performs the `Function`'s actual operation.
   virtual variable_list apply(variable_list&& inputs) = 0;
